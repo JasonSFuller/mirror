@@ -1,0 +1,5 @@
+/var/log/mirror.log {
+    missingok
+    notifempty
+    nocreate
+}

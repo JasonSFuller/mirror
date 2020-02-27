@@ -1,0 +1,2 @@
+@reboot   root /srv/mirror/bin/iso-mount     >> /var/log/mirror.log 2>&1
+2 2 * * * root /srv/mirror/bin/update-latest >> /var/log/mirror.log 2>&1

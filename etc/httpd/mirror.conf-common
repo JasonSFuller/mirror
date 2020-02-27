@@ -1,0 +1,25 @@
+DocumentRoot /srv/mirror/www
+ErrorLog     logs/mirror-error.log
+CustomLog    logs/mirror-access.log combined
+
+<Directory /srv/mirror/www>
+  # TODO maybe? if allowing auto python script
+  # Options +ExecCGI
+  Options Indexes MultiViews FollowSymlinks
+  AllowOverride all
+  Require all granted
+</Directory>
+
+# TODO maybe? if allowing auto python script
+# AddHandler cgi-script .py
+# <FilesMatch "^auto$">
+#   SetHandler cgi-script
+# </FilesMatch>
+
+Alias /theme/ "/srv/mirror/theme/"
+
+<Directory "/srv/mirror/theme">
+  Options FollowSymlinks
+  AllowOverride None
+  Require all granted
+</Directory>

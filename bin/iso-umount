@@ -1,0 +1,23 @@
+#!/bin/bash
+
+isodir='/mirror/www/iso'
+
+if [[ "$(id -u)" -ne 0 ]]; then
+  echo "ERROR: you must be root"
+  exit 1
+fi
+
+for iso in ${isodir}/*.iso
+do 
+  isobase=$(basename "$iso" .iso)
+  isomount="${isodir}/${isobase}"
+  if mountpoint "$isomount" > /dev/null 2>&1; then
+    echo "INFO: unmounting '$iso' on '$isomount'"
+    umount "$isomount"
+  fi
+  if [[ -d "$isomount" ]]; then
+    echo "INFO: removing mount point dir '$isomount'"
+    rmdir "$isomount"
+  fi
+done
+

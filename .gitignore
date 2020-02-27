@@ -1,0 +1,16 @@
+lost+found/
+www/repo/*
+www/repo-*
+!www/repo/README.md
+!www/repo/*.txt
+!www/repo/*.repo
+www/snap/*
+!www/snap/README.md
+www/iso/*
+!www/iso/README.md
+!www/iso/*.txt
+!www/iso/*.repo
+tftp/images/*
+!tftp/images/README.md
+etc/mirror.conf
+.vagrant
