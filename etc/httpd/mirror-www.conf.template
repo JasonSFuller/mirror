@@ -1,0 +1,75 @@
+ServerName "${MIRROR_HTTPD_SERVER_NAME}"
+
+# I know many consider plain ol' HTTP to be "insecure," but we need it
+# here for many bootstrapping chick/egg scenarios, particularly in the
+# PXE preboot environment before internal CAs can be installed.  Besides
+# most repos enable GPG signing
+
+<VirtualHost *:80>
+  ServerName                 "${MIRROR_HTTPD_SERVER_NAME}"
+${MIRROR_HTTPD_SERVER_ALIAS_GENERATED}
+  DocumentRoot               "${MIRROR_BASE_PATH}/www"
+  ErrorLog                   logs/mirror-error.log
+  CustomLog                  logs/mirror-access.log combined
+
+  <Directory ${MIRROR_BASE_PATH}/www>
+    # TODO maybe? if allowing auto python script
+    # Options +ExecCGI
+    Options                  Indexes MultiViews FollowSymlinks
+    AllowOverride            all
+    Require                  all granted
+  </Directory>
+
+  # TODO maybe? if allowing auto python script
+  # AddHandler                cgi-script .py
+  # <FilesMatch "^auto$">
+  #   SetHandler              cgi-script
+  # </FilesMatch>
+
+  Alias /theme/ "${MIRROR_BASE_PATH}/theme/"
+
+  <Directory "${MIRROR_BASE_PATH}/theme">
+    Options                  FollowSymlinks
+    AllowOverride            None
+    Require                  all granted
+  </Directory>
+</VirtualHost>
+
+<VirtualHost *:443>
+  ServerName                 "${MIRROR_HTTPD_SERVER_NAME}"
+${MIRROR_HTTPD_SERVER_ALIAS_GENERATED}
+  DocumentRoot               "${MIRROR_BASE_PATH}/www"
+  ErrorLog                   logs/mirror-error.log
+  CustomLog                  logs/mirror-access.log combined
+
+  <Directory ${MIRROR_BASE_PATH}/www>
+    # TODO maybe? if allowing auto python script
+    # Options +ExecCGI
+    Options                  Indexes MultiViews FollowSymlinks
+    AllowOverride            all
+    Require                  all granted
+  </Directory>
+
+  # TODO maybe? if allowing auto python script
+  # AddHandler                cgi-script .py
+  # <FilesMatch "^auto$">
+  #   SetHandler              cgi-script
+  # </FilesMatch>
+
+  Alias /theme/ "${MIRROR_BASE_PATH}/theme/"
+
+  <Directory "${MIRROR_BASE_PATH}/theme">
+    Options                  FollowSymlinks
+    AllowOverride            None
+    Require                  all granted
+  </Directory>
+
+  SSLEngine                  ON
+  SSLProtocol                ALL -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+  SSLCipherSuite             ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+  SSLHonorCipherOrder        ON
+  SSLCertificateFile         "/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.crt"
+  #SSLCertificateChainFile    /path/to/intermediate_certificate
+  SSLCertificateKeyFile      "/etc/pki/tls/private/${MIRROR_HTTPD_SERVER_NAME}.key"
+  Header                     always set Strict-Transport-Security "max-age=63072000"
+</VirtualHost>

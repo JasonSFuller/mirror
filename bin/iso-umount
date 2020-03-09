@@ -1,23 +1,27 @@
 #!/bin/bash
 
-isodir='/mirror/www/iso'
+self=$(readlink -f "$0")
+selfdir=$(dirname "$self")
+source "${selfdir}/inc/require_root.sh"
+source "${selfdir}/inc/read_config.sh"
+source "${selfdir}/inc/iso.sh"
 
-if [[ "$(id -u)" -ne 0 ]]; then
-  echo "ERROR: you must be root"
-  exit 1
+################################################################################
+
+isodir="${MIRROR_BASE_PATH}/www/iso"
+
+if [[ -f "$1" ]]; then
+  umount_iso "$1"
+else
+  for iso in ${isodir}/*.iso
+  do
+    isobase=$(basename "$iso" .iso)
+    if [[ $isobase == '*' ]]; then
+      echo "ERROR: no ISOs found in '$isodir'"
+      exit 1
+    fi
+    umount_iso "$iso"
+  done
 fi
 
-for iso in ${isodir}/*.iso
-do 
-  isobase=$(basename "$iso" .iso)
-  isomount="${isodir}/${isobase}"
-  if mountpoint "$isomount" > /dev/null 2>&1; then
-    echo "INFO: unmounting '$iso' on '$isomount'"
-    umount "$isomount"
-  fi
-  if [[ -d "$isomount" ]]; then
-    echo "INFO: removing mount point dir '$isomount'"
-    rmdir "$isomount"
-  fi
-done
 

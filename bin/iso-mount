@@ -1,30 +1,25 @@
 #!/bin/bash
 
-isodir='/srv/mirror/www/iso'
+self=$(readlink -f "$0")
+selfdir=$(dirname "$self")
+source "${selfdir}/inc/require_root.sh"
+source "${selfdir}/inc/read_config.sh"
+source "${selfdir}/inc/iso.sh"
 
-if [[ "$(id -u)" -ne 0 ]]; then
-  echo "ERROR: you must be root"
-  exit 1
+################################################################################
+
+isodir="${MIRROR_BASE_PATH}/www/iso"
+
+if [[ -f "$1" ]]; then
+  mount_iso "$1"
+else
+  for iso in ${isodir}/*.iso
+  do
+    isobase=$(basename "$iso" .iso)
+    if [[ $isobase == '*' ]]; then
+      echo "ERROR: no ISOs found in '$isodir'"
+      exit 1
+    fi
+    mount_iso "$iso"
+  done
 fi
-
-for iso in ${isodir}/*.iso
-do
-  isobase=$(basename "$iso" .iso)
-  isomount="${isodir}/${isobase}"
-  if [[ $isobase == '*' ]]; then
-    echo "ERROR: no ISOs found in '$isodir'"
-    exit 1
-  fi
-  if [[ ! -d "$isomount" ]]; then
-    echo "INFO: creating dir '$isomount'"
-    mkdir "$isomount"
-  fi
-  if ! mountpoint "$isomount" > /dev/null 2>&1; then
-    echo "INFO: mounting '$iso' on '$isomount'"
-    # Sometimes SELinux gives you trouble serving up ISO files via httpd.
-    # If so, try changing the options to this:
-    #   -o ro,context="system_u:object_r:httpd_sys_content_t:s0"
-    mount -t iso9660 -o ro "$iso" "$isomount"
-  fi
-done
-

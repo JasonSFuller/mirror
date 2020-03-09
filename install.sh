@@ -93,9 +93,8 @@ function config_web_server {
   > /etc/httpd/conf.d/welcome.conf
 
   rm -f /etc/httpd/conf.d/autoindex.conf
-  ln -s "${MIRROR_BASE_PATH}/etc/httpd/autoindex.conf"     /etc/httpd/conf.d/
-  ln -s "${MIRROR_BASE_PATH}/etc/httpd/mirror.conf"        /etc/httpd/conf.d/
-  ln -s "${MIRROR_BASE_PATH}/etc/httpd/mirror.conf-common" /etc/httpd/conf.d/
+  ln -s "${MIRROR_BASE_PATH}/etc/httpd/autoindex.conf"         /etc/httpd/conf.d/
+  ln -s "${MIRROR_BASE_PATH}/etc/httpd/mirror-www.conf"        /etc/httpd/conf.d/
 
   for i in "${MIRROR_HTTPD_SERVER_ALIAS[@]}"
   do
@@ -104,8 +103,8 @@ function config_web_server {
   done
 
   envsubst \
-    < "${MIRROR_BASE_PATH}/etc/httpd/mirror.conf.template" \
-    > "${MIRROR_BASE_PATH}/etc/httpd/mirror.conf"
+    < "${MIRROR_BASE_PATH}/etc/httpd/mirror-www.conf.template" \
+    > "${MIRROR_BASE_PATH}/etc/httpd/mirror-www.conf"
 }
 
 function config_selinux_paths {
