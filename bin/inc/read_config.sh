@@ -7,6 +7,8 @@
 #     # do stuff
 #   done
 
+# TODO validate required vars
+
 function read_config
 {
   local self=$(readlink -f "$0")

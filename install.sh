@@ -2,15 +2,18 @@
 
 ################################################################################
 
-function init {
+function init
+{
   if [[ "$(id -u)" -ne 0 ]]; then
     echo "ERROR: you must be root" 2>&1
     exit 1
   fi
+
   local self=$(readlink -f "$0")
   local selfdir=$(dirname "$self")
   MIRROR_CONFIG="${selfdir}/etc/mirror.conf"
   now=$(date +%Y%m%d%H%M%S)
+
   if [[ -r "${MIRROR_CONFIG}" ]]; then
     source "${MIRROR_CONFIG}"
   else
@@ -19,19 +22,33 @@ function init {
   fi
 }
 
-function install_web_server_packages {
-  echo 'installing web server packages'
+function install_packages
+{
+  echo 'installing required packages'
+
   yum -y install \
     @base @core vim policycoreutils-python \
     httpd mod_ssl openssl \
-    createrepo pykickstart
+    createrepo pykickstart \
+    tftp-server xinetd syslinux-tftpboot memtest86+ \
+    tftp telnet nmap # troubleshooting
 }
 
-function config_generate_ssl_certs {
-  key="/etc/pki/tls/private/${MIRROR_HTTPD_SERVER_NAME}.key" # private key
-  cfg="/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.cfg"   # csr template
-  csr="/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.csr"   # cert signing req
-  crt="/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.crt"   # public cert
+
+
+function config_generate_ssl_certs
+{
+  echo 'generating self-signed certs'
+
+  key="/etc/pki/tls/private/${MIRROR_HTTPD_SERVER_NAME}.key"
+  cfg="/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.cfg"
+  csr="/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.csr"
+  crt="/etc/pki/tls/certs/${MIRROR_HTTPD_SERVER_NAME}.crt"
+
+  echo "  private key      = $key"
+  echo "  csr template     = $cfg"
+  echo "  cert signing req = $csr"
+  echo "  public cert      = $crt"
 
   if [[ ! -f "$key" ]]; then
     openssl genrsa -out "$key" 4096
@@ -82,19 +99,20 @@ function config_generate_ssl_certs {
   fi
 }
 
-function config_web_server {
+
+
+function config_web_server
+{
   echo 'configuring the web server'
 
-  systemctl restart firewalld
-  firewall-cmd --permanent --add-service=http
-  firewall-cmd --permanent --add-service=https
-  firewall-cmd --reload
+  firewall-offline-cmd --add-service=http
+  firewall-offline-cmd --add-service=https
 
   > /etc/httpd/conf.d/welcome.conf
 
   rm -f /etc/httpd/conf.d/autoindex.conf
-  ln -s "${MIRROR_BASE_PATH}/etc/httpd/autoindex.conf"         /etc/httpd/conf.d/
-  ln -s "${MIRROR_BASE_PATH}/etc/httpd/mirror-www.conf"        /etc/httpd/conf.d/
+  ln -s "${MIRROR_BASE_PATH}/etc/httpd/autoindex.conf"  /etc/httpd/conf.d/
+  ln -s "${MIRROR_BASE_PATH}/etc/httpd/mirror-www.conf" /etc/httpd/conf.d/
 
   for i in "${MIRROR_HTTPD_SERVER_ALIAS[@]}"
   do
@@ -107,38 +125,72 @@ function config_web_server {
     > "${MIRROR_BASE_PATH}/etc/httpd/mirror-www.conf"
 }
 
-function config_selinux_paths {
+
+
+function config_tftp_server
+{
+  echo "configuring the tftp server"
+
+  firewall-offline-cmd --add-service=tftp
+
+  cp -a /etc/xinetd.d/tftp{,.${now}.backup}
+  sed -i -r 's/^(\s*disable\s*=).*/\1 no/' /etc/xinetd.d/tftp
+  sed -i -r "s#^(\\s*server_args\\s*=).*#\\1 -v -s ${MIRROR_BASE_PATH}/tftp#" /etc/xinetd.d/tftp
+
+  # TODO copy syslinux c32 files
+  # TODO copy memtest86+ kernel
+}
+
+
+
+function config_selinux_paths
+{
   echo 'configuring selinux paths'
+
   semanage fcontext -a -t httpd_config_t          "${MIRROR_BASE_PATH}/etc/httpd(/.*)?"
   semanage fcontext -a -t httpd_sys_content_t     "${MIRROR_BASE_PATH}/www(/.*)?"
   semanage fcontext -a -t httpd_sys_content_t     "${MIRROR_BASE_PATH}/theme(/.*)?"
   semanage fcontext -a -t tftpdir_t               "${MIRROR_BASE_PATH}/tftp(/.*)?"
   # TODO maybe? allow the auto gen; not happy about it today
   # semanage fcontext -a -t httpd_sys_script_exec_t "${MIRROR_BASE_PATH}/www/ks/auto"
+
   restorecon -R -v "${MIRROR_BASE_PATH}"
 }
 
-function install_update_cronjob {
+
+
+function install_update_cronjob
+{
   echo 'installing mirror cronjob'
   ln -s "${MIRROR_BASE_PATH}/etc/cron.d/mirror" /etc/cron.d/mirror
 }
 
-function install_logrotate_config {
+
+
+function install_logrotate_config
+{
   echo 'installing mirror logrotate config'
   ln -s "${MIRROR_BASE_PATH}/etc/logrotate.d/mirror" /etc/logrotate.d/mirror
 }
+
+
 
 ################################################################################
 
 init
 
-install_web_server_packages
+install_packages
 config_generate_ssl_certs
 config_web_server
+config_tftp_server
 config_selinux_paths
 
 systemctl enable  httpd
 systemctl restart httpd
+systemctl enable  xinetd # tftp
+systemctl restart xinetd # tftp
+systemctl enable  firewalld
+systemctl restart firewalld
 
 install_update_cronjob
 install_logrotate_config

@@ -46,12 +46,6 @@ function scrub_iso
     return 1
   fi
 
-  if [[ ! -f "${iso}.sha256" ]]; then
-    echo "INFO: writing checksum file"
-    local file=$(dirname "$iso")
-    echo "$sha256  $file" > "${iso}.sha256"
-  fi
-
   echo "INFO: mounting iso ($iso)"
   mount_iso "$iso"
 }
@@ -60,18 +54,22 @@ function scrub_iso
 
 function download_iso
 {
-  local url="$1"
-  local sha256="$2"
-  local iso=$(basename "$url")
+  local file="$1"
+  local url="$2"
+  local sha256="$3"
   local isodir="${MIRROR_BASE_PATH}/www/iso"
 
   if [[ ! -d "$isodir" ]]; then
     echo "ERROR: iso directory not found ($isodir)" >&2
     return 1
   fi
-  if [[ -f "$isodir/$iso" ]]; then
+  if [[ ! "$file" =~ \.iso$ ]]; then
+    echo "ERROR: invalid filename; must end in '.iso' ($file)" >&2
+    return 1
+  fi
+  if [[ -f "$isodir/$file" ]]; then
     echo "INFO: iso found; scrubbing..."
-    if scrub_iso "$isodir/$iso" "$sha256"; then
+    if scrub_iso "$isodir/$file" "$sha256"; then
       echo "INFO: skipping download"
       return
     fi
@@ -79,17 +77,22 @@ function download_iso
 
   echo    "INFO: beginning download"
   echo    "  url  = $url"
-  echo    "  file = $isodir/$iso"
+  echo    "  file = $isodir/$file"
   echo    "If the download fails (or is canceled), you can resume with:"
-  echo    "  wget -cO '$isodir/$iso' '$url'"
+  echo    "  wget -cO '$isodir/$file' '$url'"
   echo -e "Afterwards, you can re-run this script.\n"
-  wget -cO "$isodir/$iso" "$url"
+  wget -cO "$isodir/$file" "$url"
 
-  echo "INFO: scrubbing iso ($iso)"
-  scrub_iso "$isodir/$iso" "$sha256"
+  echo "INFO: scrubbing iso ($file)"
+  return scrub_iso "$isodir/$file" "$sha256"
 }
 
 
+
+function write_iso_repo_file
+{
+  local data="$1"
+}
 
 # NOTE:  Normally, these mounting options are sufficient if you ran the
 # install.sh script, but sometimes SELinux gives you trouble serving up
@@ -111,8 +114,8 @@ function mount_iso
     return 1
   fi
 
-  isobase=$(basename "$iso" .iso)
-  isomount="${isodir}/${isobase}"
+  local isobase=$(basename "$iso" .iso)
+  local isomount="${isodir}/${isobase}"
 
   if [[ ! -d "$isomount" ]]; then
     echo "INFO: creating dir '$isomount'"

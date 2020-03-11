@@ -13,7 +13,7 @@ isodir="${MIRROR_BASE_PATH}/www/iso"
 if [[ -f "$1" ]]; then
   umount_iso "$1"
 else
-  for iso in ${isodir}/*.iso
+  for iso in "$isodir"/*.iso
   do
     isobase=$(basename "$iso" .iso)
     if [[ $isobase == '*' ]]; then
