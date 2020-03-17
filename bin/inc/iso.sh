@@ -1,6 +1,6 @@
 function valid_iso
 {
-  local iso="$1"
+  local iso="$1" # full path
   local sha256="$2"
 
   if [[ ! -r "$iso" ]]; then
@@ -27,7 +27,7 @@ function valid_iso
 
 function scrub_iso
 {
-  local iso="$1"
+  local iso="$1" # full path
   local sha256="$2"
 
   if [[ ! -r "$iso" ]]; then
@@ -54,8 +54,8 @@ function scrub_iso
 
 function download_iso
 {
-  local file="$1"
-  local url="$2"
+  local file="$1" # short file name only (no path)
+  local url="$2" # download URL
   local sha256="$3"
   local isodir="${MIRROR_BASE_PATH}/www/iso"
 
@@ -67,6 +67,11 @@ function download_iso
     echo "ERROR: invalid filename; must end in '.iso' ($file)" >&2
     return 1
   fi
+  if [[ ! "$file" =~ ^[A-Za-z0-9\.\-\_]+$ ]]; then
+    echo "ERROR: invalid characters in filename ($file)" >&2
+    echo "  only alphanumeric, periods, dashes, and underscores allowed." >&2
+    return 1
+  fi
   if [[ -f "$isodir/$file" ]]; then
     echo "INFO: iso found; scrubbing..."
     if scrub_iso "$isodir/$file" "$sha256"; then
@@ -74,6 +79,9 @@ function download_iso
       return
     fi
   fi
+
+  # If it failed checksum, it shouldn't be mounted, but Just In Case (tm)...
+  umount_iso "$isodir/$file"
 
   echo    "INFO: beginning download"
   echo    "  url  = $url"
@@ -88,11 +96,6 @@ function download_iso
 }
 
 
-
-function write_iso_repo_file
-{
-  local data="$1"
-}
 
 # NOTE:  Normally, these mounting options are sufficient if you ran the
 # install.sh script, but sometimes SELinux gives you trouble serving up
@@ -115,6 +118,7 @@ function mount_iso
   fi
 
   local isobase=$(basename "$iso" .iso)
+  local isodir=$(dirname "$iso")
   local isomount="${isodir}/${isobase}"
 
   if [[ ! -d "$isomount" ]]; then
@@ -139,6 +143,7 @@ function umount_iso
   fi
 
   local isobase=$(basename "$iso" .iso)
+  local isodir=$(dirname "$iso")
   local isomount="${isodir}/${isobase}"
 
   if mountpoint "$isomount" > /dev/null 2>&1; then
@@ -149,4 +154,40 @@ function umount_iso
     echo "INFO: removing mount point dir '$isomount'"
     rmdir "$isomount"
   fi
+}
+
+
+
+function write_iso_file
+{
+  local file="$1"
+  local type="$2"
+  local data="${3:-/dev/stdin}"
+
+  local iso="${MIRROR_BASE_PATH}/www/iso/$file"
+  local isobase=$(basename "$iso" .iso)
+  local isodir=$(dirname "$iso")
+  local isomount="${isodir}/${isobase}"
+
+  if [[ ! "$iso" =~ \.iso$ ]]; then
+    echo "ERROR: invalid filename; must end in '.iso' ($iso)" >&2
+    return 1
+  fi
+  if [[ ! -r "$iso" ]]; then
+    echo "ERROR: iso missing or unreadable ($iso)" >&2
+    return 1
+  fi
+
+  case "$type" in
+    "repo")              echo "$data" > "${MIRROR_BASE_PATH}/www/iso/${isobase}.repo" ;;
+    "sha256")            echo "$data" > "${MIRROR_BASE_PATH}/www/iso/${isobase}.sha256" ;;
+    "menu-vanilla")      echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/vanilla.${isobase}.cfg" ;;
+    "menu-rescue")       echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/rescue.${isobase}.cfg" ;;
+    "kickstart-vanilla") echo "$data" > "${MIRROR_BASE_PATH}/www/ks/vanilla.${isobase}.repo" ;;
+    "kickstart-rescue")  echo "$data" > "${MIRROR_BASE_PATH}/www/ks/rescue.${isobase}.repo" ;;
+    *)
+      echo "ERROR: invalid type specified" >&2
+      return 1
+      ;;
+  esac
 }

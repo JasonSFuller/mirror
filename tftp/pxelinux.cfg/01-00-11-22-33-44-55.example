@@ -1,0 +1,5 @@
+# for a host with mac address = 00:11:22:33:44:55, auto install CentOS 7.7.1908
+# using a kickstart (whatever.cfg)
+
+DEFAULT       images/CentOS-7-x86_64-Everything-1908/vmlinuz
+APPEND initrd=images/CentOS-7-x86_64-Everything-1908/initrd.img ks=http://mirror.example.com/ks/whatever.cfg

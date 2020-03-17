@@ -4,7 +4,7 @@
 #   including the installer.  This means the syntax for defining these         #
 #   variables is straight bash.  They are all required.                        #
 #                                                                              #
-#   Also, I am being lazy and **NOT** doing proper validation these            #
+#   Also, I am being lazy and **NOT** doing proper validation of these         #
 #   variables, so **READ** and set them carefully.  You have been warned!      #
 #                                                                              #
 ################################################################################
@@ -17,29 +17,43 @@
 # `hostname -f` and then leave the aliases array empty.  However, one of these
 # two should at least contain the output of `hostname -f`.
 
-#MIRROR_HTTPD_SERVER_NAME='mirror.example.com'
-MIRROR_HTTPD_SERVER_NAME=''
+export MIRROR_HTTPD_SERVER_NAME='mirror.example.com'
+
 
 
 #---
 # This **ARRAY** should be all the other aliases the server should answer.  If
 # you have a vanity name, this should at least contain the FQDN of the server.
 
-#MIRROR_HTTPD_SERVER_ALIAS=(
-#  'myservername01.example.com'
-#)
-MIRROR_HTTPD_SERVER_ALIAS=()
+export MIRROR_HTTPD_SERVER_ALIAS=(
+  'server01.example.com'
+)
+
 
 
 #---
 # The base path for the project files.  Don't add a trailing slash.
 
-#MIRROR_BASE_PATH='/srv/mirror'
-MIRROR_BASE_PATH='/srv/mirror'
+export MIRROR_BASE_PATH='/srv/mirror'
 
 
-################################################################################
 
-export MIRROR_HTTPD_SERVER_NAME
-export MIRROR_HTTPD_SERVER_ALIAS
-export MIRROR_BASE_PATH
+#---
+# The default crypted (sha512) root password to use in kickstart files
+# for the initial OS config.  Note that the hash of the password will
+# be public and accessible on the web site (in the kickstart files) for
+# anyone to see.  So, you should change the root password immediately
+# after installing.  Or better yet, lock the root account, create a new
+# provisioning user (e.g. ansible) with sudo access, and only allow ssh
+# keys/certs/gssapi for auth--which is what the custom tftp menu items
+# are for.
+#
+# Example of how to generate a salted/hashed sha512 password:
+#
+#   [root@localhost ~]# pw=$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
+#   [root@localhost ~]# echo "password: $pw"
+#   password: hvZ3WOy2lmgcL28S7IWThwup
+#   [root@localhost ~]# echo -n "$pw" | python -c 'import sys,crypt; print(crypt.crypt(sys.stdin.read()))'
+#   $6$1eopy8hnLtaKO7cU$KRv/3wAfJFJGNs7SWBkRLdtahKjKw8SjgCcSmP73G46rWfSQMLlQ/o3o7fvDCew50KdxfWp45NWG8bOxFQS8n.
+
+export MIRROR_CRYPTED_ROOTPW='$6$1eopy8hnLtaKO7cU$KRv/3wAfJFJGNs7SWBkRLdtahKjKw8SjgCcSmP73G46rWfSQMLlQ/o3o7fvDCew50KdxfWp45NWG8bOxFQS8n.'

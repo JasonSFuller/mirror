@@ -1,16 +1,30 @@
 lost+found/
+
 www/repo/*
 www/repo-*
 !www/repo/README.md
 !www/repo/*.txt
 !www/repo/*.repo
+
 www/snap/*
 !www/snap/README.md
+
 www/iso/*
 !www/iso/README.md
 !www/iso/*.txt
 !www/iso/*.repo
+
+# These files are COPIED from the syslinux and memtest86+ package dirs
+# because of an issue with in.tftpd accessing files (symlinks) outside
+# the served directory.  Plus, we don't really want binaries in source
+# control.
+tftp/pxelinux.0
+tftp/chain.c32
+tftp/menu.c32
+
 tftp/images/*
 !tftp/images/README.md
+
 etc/mirror.conf
+
 .vagrant

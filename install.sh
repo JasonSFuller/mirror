@@ -22,6 +22,8 @@ function init
   fi
 }
 
+
+
 function install_packages
 {
   echo 'installing required packages'
@@ -137,8 +139,18 @@ function config_tftp_server
   sed -i -r 's/^(\s*disable\s*=).*/\1 no/' /etc/xinetd.d/tftp
   sed -i -r "s#^(\\s*server_args\\s*=).*#\\1 -v -s ${MIRROR_BASE_PATH}/tftp#" /etc/xinetd.d/tftp
 
-  # TODO copy syslinux c32 files
-  # TODO copy memtest86+ kernel
+  # BUG
+  # These files are COPIED from the syslinux and memtest86+ package dirs
+  # because of an issue with in.tftpd accessing files (symlinks) outside
+  # the served directory.  Plus, we don't really want binaries in source
+  # control.  Bottom-line, this means if the syslinux package is updated,
+  # these binaries need to be copied again.  [*sigh*]  It's a good thing
+  # it changes infrequently.
+  install -o root -g root -m 644 /var/lib/tftpboot/pxelinux.0 "${MIRROR_BASE_PATH}/tftp/"
+  install -o root -g root -m 644 /var/lib/tftpboot/chain.c32  "${MIRROR_BASE_PATH}/tftp/"
+  install -o root -g root -m 644 /var/lib/tftpboot/menu.c32   "${MIRROR_BASE_PATH}/tftp/"
+
+  install -o root -g root -m 644 /boot/memtest86+-5.01        "${MIRROR_BASE_PATH}/tftp/images/"
 }
 
 

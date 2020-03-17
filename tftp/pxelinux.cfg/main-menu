@@ -1,0 +1,33 @@
+INCLUDE pxelinux.cfg/main-menu.cfg/shared
+
+MENU TITLE Mirror PXE boot -- Main menu
+DEFAULT menu.c32
+PROMPT 0
+ONTIMEOUT local
+
+LABEL local
+  MENU LABEL ^Boot from local hard drive
+  KERNEL chain.c32
+
+MENU SEPARATOR
+
+LABEL iso
+  MENU LABEL Install ^ISO release
+  KERNEL menu.c32
+  APPEND pxelinux.cfg/menu-iso
+
+LABEL custom
+  MENU LABEL Install ^Custom
+  KERNEL menu.c32
+  APPEND pxelinux.cfg/menu-custom
+
+LABEL rescue
+  MENU LABEL Boot in ^Rescue mode
+  KERNEL menu.c32
+  APPEND pxelinux.cfg/menu-rescue
+
+LABEL troubleshooting-tools
+  MENU LABEL ^Troubleshooting tools
+  KERNEL menu.c32
+  APPEND pxelinux.cfg/menu-troubleshooting
+
