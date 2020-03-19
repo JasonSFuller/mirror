@@ -24,8 +24,13 @@ fi
 # By this point, the ISO should be downloaded, verified, AND mounted,
 # so you can do things, like copy syslinux files for TFTP.
 
-# TODO
-# install ${MIRROR_BASE_PATH}/iso/syslinux ${MIRROR_BASE_PATH}/tftp/images/$filebase/
+install -m 755 -o root -g root -d "${MIRROR_BASE_PATH}/tftp/images/${filebase}"
+install -m 644 -o root -g root \
+  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/vmlinuz" \
+  "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
+install -m 644 -o root -g root \
+  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/initrd.img" \
+  "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
 
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
 # these, MAKE SURE your editor does not replace the leading tabs with spaces.
@@ -42,20 +47,20 @@ write_iso_file "$file" sha256 "$sha256  $file"
 
 write_iso_file "$file" menu-vanilla <<- EOF
 	LABEL $filebase
-	MENU LABEL Install CentOS 7.7
-	KERNEL images/$filebase/vmlinuz
-	APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
+	  MENU LABEL Install CentOS 7.7
+	  KERNEL images/$filebase/vmlinuz
+	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
 	EOF
 
-write_iso_file "$file" menu-rescue <<- 'EOF'
+write_iso_file "$file" menu-troubleshooting <<- EOF
 	LABEL $filebase
-	MENU LABEL Rescue mode using CentOS 7.7
-	KERNEL images/$filebase/vmlinuz
-	APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/rescue.${filebase}.repo
+	  MENU LABEL Rescue mode using CentOS 7.7
+	  KERNEL images/$filebase/vmlinuz
+	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/troubleshooting.${filebase}.repo
 	EOF
 
 write_iso_file "$file" kickstart-vanilla <<- EOF
-	url  --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase/'
+	url  --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase'
 	network --bootproto=dhcp
 	rootpw --iscrypted ${MIRROR_CRYPTED_ROOTPW}
 	lang en_US
@@ -72,13 +77,13 @@ write_iso_file "$file" kickstart-vanilla <<- EOF
 	zerombr
 	bootloader --location=mbr
 	clearpart --all --initlabel
-	part       /boot      --fstype=ext4  --size=512
-	part       pv.01      --fstype=lvmpv --size=1 --ondisk=sda --grow
-	volgroup   vg0  pv.01 --pesize=4096
-	logvol     /          --fstype=ext4  --name=root  --vgname=vg0 --size=4096
-	logvol     swap       --fstype=swap  --name=swap  --vgname=vg0 --size=2048
-	logvol     /tmp       --fstype=ext4  --name=tmp   --vgname=vg0 --size=2048
-	logvol     /var/log   --fstype=ext4  --name=var   --vgname=vg0 --size=2048
+	part      /boot       --fstype=ext4  --size=512
+	part      pv.01       --fstype=lvmpv --size=1 --ondisk=sda --grow
+	volgroup  vg0  pv.01  --pesize=4096
+	logvol    /           --fstype=ext4  --name=root  --vgname=vg0 --size=4096
+	logvol    swap        --fstype=swap  --name=swap  --vgname=vg0 --size=2048
+	logvol    /tmp        --fstype=ext4  --name=tmp   --vgname=vg0 --size=2048
+	logvol    /var/log    --fstype=ext4  --name=var   --vgname=vg0 --size=2048
 	# --------------------------------------------------------------------
 	%packages
 	@base
@@ -104,7 +109,6 @@ write_iso_file "$file" kickstart-vanilla <<- EOF
 	nmap
 	nmap-ncat
 	telnet
-	ansible
 	%end
 
 	%post
@@ -113,12 +117,14 @@ write_iso_file "$file" kickstart-vanilla <<- EOF
 	%end
 	EOF
 
-write_iso_file "$file" kickstart-rescue <<- EOF
+write_iso_file "$file" kickstart-troubleshooting <<- EOF
 	rescue
-	url --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase/'
+	url --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase'
 	network --bootproto=dhcp
 	lang en_US
 	keyboard us
 	timezone --utc America/New_York
 	firewall --enabled --service=ssh
 	EOF
+
+source "${selfdir}/tftp-rebuild-menu"

@@ -21,6 +21,8 @@ download_iso "$file" "$url" "$sha256"
 # By this point, the ISO should be downloaded, verified, AND mounted,
 # so you can do things, like copy syslinux files for TFTP.
 
+# TODO copy vmlinuz and initrd.img to tftp dir
+
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
 # these, MAKE SURE your editor does not replace the leading tabs with spaces.
 
@@ -33,3 +35,9 @@ write_iso_file "$file" repo <<- 'EOF'
 	EOF
 
 write_iso_file "$file" sha256 "$sha256  $file"
+
+# TODO # write_iso_file "$file" menu-vanilla <<- EOF
+# TODO # write_iso_file "$file" menu-troubleshooting <<- EOF
+# TODO # write_iso_file "$file" kickstart-vanilla <<- EOF
+# TODO # write_iso_file "$file" kickstart-troubleshooting <<- EOF
+# TODO source "${selfdir}/tftp-rebuild-menu"

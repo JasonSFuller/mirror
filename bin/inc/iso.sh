@@ -41,7 +41,7 @@ function scrub_iso
 
   if ! valid_iso "$iso" "$sha256"; then
     echo "WARN: removing iso ($iso)"
-    "${selfdir}/iso-umount" "$iso"
+    iso-umount "$iso"
     rm -f "$iso"
     return 1
   fi
@@ -67,7 +67,7 @@ function download_iso
     echo "ERROR: invalid filename; must end in '.iso' ($file)" >&2
     return 1
   fi
-  if [[ ! "$file" =~ ^[A-Za-z0-9\.\-\_]+$ ]]; then
+  if [[ ! "$file" =~ ^[-\.\_A-Za-z0-9]+$ ]]; then
     echo "ERROR: invalid characters in filename ($file)" >&2
     echo "  only alphanumeric, periods, dashes, and underscores allowed." >&2
     return 1
@@ -162,7 +162,8 @@ function write_iso_file
 {
   local file="$1"
   local type="$2"
-  local data="${3:-/dev/stdin}"
+  local data="$3"
+  if [[ -z "$data" ]]; then data=$(</dev/stdin); fi
 
   local iso="${MIRROR_BASE_PATH}/www/iso/$file"
   local isobase=$(basename "$iso" .iso)
@@ -179,12 +180,24 @@ function write_iso_file
   fi
 
   case "$type" in
-    "repo")              echo "$data" > "${MIRROR_BASE_PATH}/www/iso/${isobase}.repo" ;;
-    "sha256")            echo "$data" > "${MIRROR_BASE_PATH}/www/iso/${isobase}.sha256" ;;
-    "menu-vanilla")      echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/vanilla.${isobase}.cfg" ;;
-    "menu-rescue")       echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/rescue.${isobase}.cfg" ;;
-    "kickstart-vanilla") echo "$data" > "${MIRROR_BASE_PATH}/www/ks/vanilla.${isobase}.repo" ;;
-    "kickstart-rescue")  echo "$data" > "${MIRROR_BASE_PATH}/www/ks/rescue.${isobase}.repo" ;;
+    "repo")
+      echo "INFO: writing the repo file for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/www/iso/${isobase}.repo" ;;
+    "sha256")
+      echo "INFO: writing the sha256 checksum for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/www/iso/${isobase}.sha256" ;;
+    "menu-vanilla")
+      echo "INFO: writing the vanilla menu for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/vanilla.${isobase}.cfg" ;;
+    "menu-troubleshooting")
+      echo "INFO: writing the troubleshooting menu for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/troubleshooting.${isobase}.cfg" ;;
+    "kickstart-vanilla")
+      echo "INFO: writing the vanilla kickstart for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/www/ks/vanilla.${isobase}.repo" ;;
+    "kickstart-troubleshooting")
+      echo "INFO: writing the troubleshooting kickstart for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/www/ks/troubleshooting.${isobase}.repo" ;;
     *)
       echo "ERROR: invalid type specified" >&2
       return 1
