@@ -46,6 +46,11 @@ function scrub_iso
     return 1
   fi
 
+  echo "INFO: fixing permissions"
+  chmod 0644 "$iso"
+  chown root:root "$iso"
+  restorecon "$iso"
+
   echo "INFO: mounting iso ($iso)"
   mount_iso "$iso"
 }
