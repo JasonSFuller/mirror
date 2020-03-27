@@ -35,7 +35,7 @@ install -m 644 -o root -g root \
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
 # these, MAKE SURE your editor does not replace the leading tabs with spaces.
 
-write_iso_file "$file" repo <<- 'EOF'
+write_iso_file "$file" repo <<- EOF
 	[$filebase]
 	name     = CentOS 8.1 ISO
 	baseurl  = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}/

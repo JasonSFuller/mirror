@@ -26,7 +26,7 @@ download_iso "$file" "$url" "$sha256"
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
 # these, MAKE SURE your editor does not replace the leading tabs with spaces.
 
-write_iso_file "$file" repo <<- 'EOF'
+write_iso_file "$file" repo <<- EOF
 	[$filebase]
 	name     = CentOS 6.10 ISO
 	baseurl  = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}/
