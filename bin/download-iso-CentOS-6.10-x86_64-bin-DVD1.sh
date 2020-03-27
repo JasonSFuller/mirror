@@ -16,12 +16,18 @@ sha256='a68e46970678d4d297d46086ae2efdd3e994322d6d862ff51dcce25a0759e41c'
 filebase=$(basename "$file" .iso)
 
 # download iso
-download_iso "$file" "$url" "$sha256"
+# DEBUG # download_iso "$file" "$url" "$sha256"
 
 # By this point, the ISO should be downloaded, verified, AND mounted,
 # so you can do things, like copy syslinux files for TFTP.
 
-# TODO copy vmlinuz and initrd.img to tftp dir
+install -m 755 -o root -g root -d "${MIRROR_BASE_PATH}/tftp/images/${filebase}"
+install -m 644 -o root -g root \
+  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/vmlinuz" \
+  "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
+install -m 644 -o root -g root \
+  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/initrd.img" \
+  "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
 
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
 # these, MAKE SURE your editor does not replace the leading tabs with spaces.
@@ -36,8 +42,36 @@ write_iso_file "$file" repo <<- EOF
 
 write_iso_file "$file" sha256 "$sha256  $file"
 
-# TODO # write_iso_file "$file" menu-vanilla <<- EOF
-# TODO # write_iso_file "$file" menu-troubleshooting <<- EOF
+write_iso_file "$file" menu-vanilla <<- EOF
+	LABEL $filebase
+	  MENU LABEL Install CentOS 6.10
+	  KERNEL images/$filebase/vmlinuz
+	  #APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
+	  APPEND initrd=images/$filebase/initrd.img
+	EOF
+
+write_iso_file "$file" menu-troubleshooting <<- EOF
+	LABEL $filebase
+	  MENU LABEL Rescue mode using CentOS 6.10
+	  KERNEL images/$filebase/vmlinuz
+	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/troubleshooting.${filebase}.repo
+	EOF
+
 # TODO # write_iso_file "$file" kickstart-vanilla <<- EOF
-# TODO # write_iso_file "$file" kickstart-troubleshooting <<- EOF
-# TODO source "${selfdir}/tftp-rebuild-menu"
+# TODO # install mirror cert
+# TODO # disable all default repos
+# TODO # enable mirror repos (base, updates, extras???)
+# TODO # resize disk
+# TODO # add packages i like
+
+write_iso_file "$file" kickstart-troubleshooting <<- EOF
+	rescue
+	url --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase'
+	network --bootproto=dhcp
+	lang en_US
+	keyboard us
+	timezone --utc America/New_York
+	firewall --enabled --service=ssh
+	EOF
+
+source "${selfdir}/tftp-rebuild-menu"
