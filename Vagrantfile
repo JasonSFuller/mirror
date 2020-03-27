@@ -1,5 +1,5 @@
 # Tested with:
-#   RHEL 8.1
+#   RHEL 8.1 and Ubuntu 18.04.4 LTS
 #   VirtualBox 6.1
 #   Vagrant 2.2.7
 # If you're having trouble building with vagrant, you should try:
@@ -19,6 +19,7 @@ Vagrant.configure("2") do |config|
 	config.vm.box = "centos/7"
 	config.vm.network "forwarded_port", guest: 80,  host: 8080
 	config.vm.network "forwarded_port", guest: 443, host: 8443
+	config.vm.network "private_network", ip: "192.168.56.10"
 	config.vm.provision "shell", privileged: true, inline: <<~'SHELL'
 		cp -rf /vagrant /srv/mirror
 		/srv/mirror/install.sh
