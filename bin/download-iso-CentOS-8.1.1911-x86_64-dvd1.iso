@@ -117,6 +117,10 @@ write_iso_file "$file" kickstart-vanilla <<- EOF
 	%end
 	EOF
 
+# TODO # install mirror cert
+# TODO # disable all default repos
+# TODO # enable mirror repos (base, updates, extras???)
+
 write_iso_file "$file" kickstart-troubleshooting <<- EOF
 	rescue
 	url --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase'

@@ -46,7 +46,7 @@ write_iso_file "$file" menu-vanilla <<- EOF
 	LABEL $filebase
 	  MENU LABEL Install CentOS 6.10
 	  KERNEL images/$filebase/vmlinuz
-	  #APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
+	  # TODO # APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
 	  APPEND initrd=images/$filebase/initrd.img
 	EOF
 
@@ -58,6 +58,7 @@ write_iso_file "$file" menu-troubleshooting <<- EOF
 	EOF
 
 # TODO # write_iso_file "$file" kickstart-vanilla <<- EOF
+
 # TODO # install mirror cert
 # TODO # disable all default repos
 # TODO # enable mirror repos (base, updates, extras???)
