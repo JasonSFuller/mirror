@@ -10,7 +10,7 @@ source "${selfdir}/inc/iso.sh"
 
 # source:  http://mirror.centos.org/centos/8.1.1911/isos/x86_64/CHECKSUM
 file='CentOS-8.1.1911-x86_64-dvd1.iso'
-url='http://isoredirect.centos.org/centos/7.7.1908/isos/x86_64/CentOS-7-x86_64-Everything-1908.iso'
+url='http://isoredirect.centos.org/centos/8.1.1911/isos/x86_64/CentOS-8.1.1911-x86_64-dvd1.iso'
 sha256='3ee3f4ea1538e026fff763e2b284a6f20b259d91d1ad5688f5783a67d279423b'
 
 filebase=$(basename "$file" .iso)
