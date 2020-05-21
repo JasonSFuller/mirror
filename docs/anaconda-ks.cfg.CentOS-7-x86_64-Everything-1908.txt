@@ -1,0 +1,48 @@
+#version=DEVEL
+# System authorization information
+auth --enableshadow --passalgo=sha512
+# Use graphical install
+graphical
+# Run the Setup Agent on first boot
+firstboot --enable
+ignoredisk --only-use=sda
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --bootproto=dhcp --device=enp0s3 --ipv6=auto --activate
+network  --hostname=localhost.localdomain
+
+# Use network installation
+url --url="https://mirror.example.com/iso/CentOS-7-x86_64-Everything-1908" --noverifyssl
+# Root password
+rootpw --iscrypted $6$e8KvayUJsuAScCCa$Q6JFSTn46kmScB6.0FTAdblofvJKCtBU4Cy5COyEYOIeqhtKwzua.FXgOhcjtLGh7zOXE3PFs.bMnKhg.DfTu1
+# System services
+services --enabled="chronyd"
+# System timezone
+timezone America/New_York --isUtc
+# System bootloader configuration
+bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
+autopart --type=lvm
+# Partition clearing information
+clearpart --none --initlabel
+
+%packages
+@^minimal
+@core
+chrony
+kexec-tools
+
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end

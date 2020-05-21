@@ -23,7 +23,8 @@ export MIRROR_HTTPD_SERVER_NAME='mirror.example.com'
 
 #---
 # This **ARRAY** should be all the other aliases the server should answer.  If
-# you have a vanity name, this should at least contain the FQDN of the server.
+# you have a vanity name for the MIRROR_HTTPD_SERVER_NAME, then this should at
+# least contain the FQDN of the server.
 
 export MIRROR_HTTPD_SERVER_ALIAS=(
   'server01.example.com'
@@ -48,7 +49,7 @@ export MIRROR_BASE_PATH='/srv/mirror'
 # keys/certs/gssapi for auth--which is what the custom tftp menu items
 # are for.
 #
-# Example of how to generate a salted/hashed sha512 password:
+# Example of how to generate a random salted/hashed sha512 password:
 #
 #   [root@localhost ~]# pw=$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
 #   [root@localhost ~]# echo "password: $pw"
@@ -57,3 +58,22 @@ export MIRROR_BASE_PATH='/srv/mirror'
 #   $6$1eopy8hnLtaKO7cU$KRv/3wAfJFJGNs7SWBkRLdtahKjKw8SjgCcSmP73G46rWfSQMLlQ/o3o7fvDCew50KdxfWp45NWG8bOxFQS8n.
 
 export MIRROR_CRYPTED_ROOTPW='$6$1eopy8hnLtaKO7cU$KRv/3wAfJFJGNs7SWBkRLdtahKjKw8SjgCcSmP73G46rWfSQMLlQ/o3o7fvDCew50KdxfWp45NWG8bOxFQS8n.'
+
+
+
+#---
+# Set the contents of /root/.ssh/authorized_keys for default ssh access.  
+# Replace the lines between the EOF delimiters.  IMPORTANT:  The trailing 
+# EOF must be on an empty line by itself, and avoid using the string "EOF" 
+# (check your public keys) or **ANY** single quotes ANYWHERE in the text.
+
+read -r -d '' MIRROR_ROOT_AUTHKEYS <<- 'EOF'
+# ----- START REPLACE ----- from here (remove this line too)
+# key 1
+# key 2
+# ...
+# key N
+# ----- END REPLACE ------- to here (remove this line too)
+EOF
+
+export MIRROR_ROOT_AUTHKEYS

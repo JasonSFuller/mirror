@@ -26,10 +26,7 @@ fi
 
 install -m 755 -o root -g root -d "${MIRROR_BASE_PATH}/tftp/images/${filebase}"
 install -m 644 -o root -g root \
-  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/vmlinuz" \
-  "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
-install -m 644 -o root -g root \
-  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/initrd.img" \
+  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/"{vmlinuz,initrd.img} \
   "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
 
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
@@ -38,7 +35,7 @@ install -m 644 -o root -g root \
 write_iso_file "$file" repo <<- EOF
 	[$filebase]
 	name     = CentOS 7.7 ISO
-	baseurl  = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}/
+	baseurl  = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}
 	gpgkey   = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}/RPM-GPG-KEY-CentOS-7
 	gpgcheck = 1
 	EOF
@@ -47,7 +44,11 @@ write_iso_file "$file" sha256 "$sha256  $file"
 
 write_iso_file "$file" menu-vanilla <<- EOF
 	LABEL $filebase
-	  MENU LABEL Install CentOS 7.7
+	  MENU LABEL Install CentOS 7.7 (interactive installer)
+	  KERNEL images/$filebase/vmlinuz
+	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.repo=https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}
+	LABEL $filebase
+	  MENU LABEL Install CentOS 7.7 (automated, no prompts)
 	  KERNEL images/$filebase/vmlinuz
 	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
 	EOF
@@ -59,6 +60,8 @@ write_iso_file "$file" menu-troubleshooting <<- EOF
 	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/troubleshooting.${filebase}.repo
 	EOF
 
+# using a long EOF string here to avoid those characters accidently showing up
+# in someone's public key
 write_iso_file "$file" kickstart-vanilla <<- EOF
 	url  --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase'
 	network --bootproto=dhcp
@@ -73,47 +76,33 @@ write_iso_file "$file" kickstart-vanilla <<- EOF
 	skipx
 	text
 	reboot
+
+	# --------------------------------------------------------------------
+	# For a simple setup, you could use "autopart --type=lvm" instead of
+	# the partition and logical volume definitions below, but you can't
+	# define "part" or "logvol" when using autopart.  I like /tmp and
+	# /var/log on separate volumes too, and since autopart only creates
+	# / (root), /boot, and swap, I'm defining everything manually.
 	# --------------------------------------------------------------------
 	zerombr
 	bootloader --location=mbr
 	clearpart --all --initlabel
-	part      /boot       --fstype=ext4  --size=512
-	part      pv.01       --fstype=lvmpv --size=1 --ondisk=sda --grow
+	part      /boot       --fstype=ext4                            --size=1024
+	part      pv.01       --fstype=lvmpv --ondisk=sda              --size=10240 --grow
 	volgroup  vg0  pv.01  --pesize=4096
-	logvol    /           --fstype=ext4  --name=root  --vgname=vg0 --size=4096
+	logvol    /           --fstype=ext4  --name=root  --vgname=vg0 --size=4096  --grow
 	logvol    swap        --fstype=swap  --name=swap  --vgname=vg0 --size=2048
 	logvol    /tmp        --fstype=ext4  --name=tmp   --vgname=vg0 --size=2048
 	logvol    /var/log    --fstype=ext4  --name=var   --vgname=vg0 --size=2048
 	# --------------------------------------------------------------------
-	%packages
-	@base
-	@core
-	ca-certificates
-	openssl
-	vim-enhanced
-	wget
-	rsync
-	screen
-	dstat
-	git
-	bind-utils
-	nfs-utils
-	yum-utils
-	rpm-build
-	rpmdevtools
-	redhat-lsb
-	bash-completion
-	policycoreutils-python
-	setroubleshoot-server
-	uuid
-	nmap
-	nmap-ncat
-	telnet
-	%end
 
+	# You COULD define complicated %packages and %post sections, but
+	# post-config should really be done by config management (ansible,
+	# chef, puppet, etc.)  I'm using juuust enough to get in securely.
 	%post
-	# grow the root volume to whatever size is available on the disk
-	lvextend -r -l +100%FREE /dev/vg0/root
+	install -m 0700 -o root -g root -d /root/.ssh
+	install -m 0600 -o root -g root /dev/null /root/.ssh/authorized_keys
+	echo '$MIRROR_ROOT_AUTHKEYS' > /root/.ssh/authorized_keys
 	%end
 	EOF
 

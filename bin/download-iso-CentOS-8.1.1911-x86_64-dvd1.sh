@@ -26,10 +26,7 @@ fi
 
 install -m 755 -o root -g root -d "${MIRROR_BASE_PATH}/tftp/images/${filebase}"
 install -m 644 -o root -g root \
-  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/vmlinuz" \
-  "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
-install -m 644 -o root -g root \
-  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/initrd.img" \
+  "${MIRROR_BASE_PATH}/www/iso/${filebase}/images/pxeboot/"{vmlinuz,initrd.img} \
   "${MIRROR_BASE_PATH}/tftp/images/${filebase}/"
 
 # NOTE: I'm using heredocs for the multiline config files, so if modifying
@@ -38,7 +35,7 @@ install -m 644 -o root -g root \
 write_iso_file "$file" repo <<- EOF
 	[$filebase]
 	name     = CentOS 8.1 ISO
-	baseurl  = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}/
+	baseurl  = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}
 	gpgkey   = https://${MIRROR_HTTPD_SERVER_NAME}/iso/${filebase}/RPM-GPG-KEY-CentOS-8
 	gpgcheck = 1
 	EOF
@@ -49,7 +46,14 @@ write_iso_file "$file" menu-vanilla <<- EOF
 	LABEL $filebase
 	  MENU LABEL Install CentOS 8.1
 	  KERNEL images/$filebase/vmlinuz
-	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/vanilla.${filebase}.repo
+	  APPEND initrd=images/$filebase/initrd.img
+	EOF
+
+write_iso_file "$file" menu-custom <<- EOF
+	LABEL $filebase
+	  MENU LABEL Install CentOS 8.1
+	  KERNEL images/$filebase/vmlinuz
+	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/custom.${filebase}.repo
 	EOF
 
 write_iso_file "$file" menu-troubleshooting <<- EOF
@@ -59,7 +63,7 @@ write_iso_file "$file" menu-troubleshooting <<- EOF
 	  APPEND initrd=images/$filebase/initrd.img inst.noverifyssl inst.ks=https://${MIRROR_HTTPD_SERVER_NAME}/ks/troubleshooting.${filebase}.repo
 	EOF
 
-write_iso_file "$file" kickstart-vanilla <<- EOF
+write_iso_file "$file" kickstart-custom <<- EOF
 	url  --noverifyssl --url='https://${MIRROR_HTTPD_SERVER_NAME}/iso/$filebase'
 	network --bootproto=dhcp
 	rootpw --iscrypted ${MIRROR_CRYPTED_ROOTPW}

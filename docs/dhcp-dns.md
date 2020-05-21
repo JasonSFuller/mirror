@@ -9,12 +9,15 @@ outside of the scope of this project and, therefore, not included by default.
 
 ## Install git
 
-This is for colored output when spot checking configs, since `diff` does not include the `--color` flag in the current RHEL/CentOS 7 releases.
+This is for colored output.  It isn't strictly necessary, but I use it below
+when spot checking configs, since `diff` does not include the `--color` flag
+in the current RHEL/CentOS 7 (and earlier) releases.
 
 	yum -y install git
 	git config --global color.ui auto
 
-Then you can do things like this, even for files **not** in a git repo:
+Then you can do things like this, even for files **not** in a git repo
+(`--no-index`):
 
 	git diff --no-index old.txt new.txt
 
@@ -137,7 +140,7 @@ Verify the changes.
 
 	for i in {200..250}
 	do
-	  printf "%-19s %-4s %s\n" "guest-$i" "A" "192.168.56.$i" \
+	  printf "%-19s %-4s %s\n" "dhcp-192-168-56-$i" "A" "192.168.56.$i" \
 	    >> /etc/named/example.com.zone
 	done
 
@@ -162,7 +165,7 @@ Verify the changes.
 
 	for i in {200..250}
 	do
-	  printf "%-19s %-4s %s\n" "$i" "PTR" "guest-$i.example.com ; 192.168.56.$i" \
+	  printf "%-19s %-4s %s\n" "$i" "PTR" "dhcp-192-168-56-$i.example.com." \
 	    >> /etc/named/56.168.192.in-addr.arpa.zone
 	done
 

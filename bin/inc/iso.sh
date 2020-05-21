@@ -194,12 +194,18 @@ function write_iso_file
     "menu-vanilla")
       echo "INFO: writing the vanilla menu for $isobase"
       echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/vanilla.${isobase}.cfg" ;;
+    "menu-custom")
+      echo "INFO: writing the custom menu for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/custom.${isobase}.cfg" ;;
     "menu-troubleshooting")
       echo "INFO: writing the troubleshooting menu for $isobase"
       echo "$data" > "${MIRROR_BASE_PATH}/tftp/pxelinux.cfg/main-menu.cfg/troubleshooting.${isobase}.cfg" ;;
     "kickstart-vanilla")
       echo "INFO: writing the vanilla kickstart for $isobase"
       echo "$data" > "${MIRROR_BASE_PATH}/www/ks/vanilla.${isobase}.repo" ;;
+    "kickstart-custom")
+      echo "INFO: writing the custom kickstart for $isobase"
+      echo "$data" > "${MIRROR_BASE_PATH}/www/ks/custom.${isobase}.repo" ;;
     "kickstart-troubleshooting")
       echo "INFO: writing the troubleshooting kickstart for $isobase"
       echo "$data" > "${MIRROR_BASE_PATH}/www/ks/troubleshooting.${isobase}.repo" ;;
