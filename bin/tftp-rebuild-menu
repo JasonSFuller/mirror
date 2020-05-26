@@ -1,6 +1,6 @@
 #!/bin/bash
 
-self=$(readlink -f "$0")
+self=$(realpath -e "${BASH_SOURCE[0]}")
 selfdir=$(dirname "$self")
 source "${selfdir}/inc/require_root.sh"
 source "${selfdir}/inc/read_config.sh"

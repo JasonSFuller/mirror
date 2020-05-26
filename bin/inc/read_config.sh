@@ -11,7 +11,7 @@
 
 function read_config
 {
-  local self=$(readlink -f "$0")
+  local self=$(realpath -e "${BASH_SOURCE[0]}")
   local selfdir=$(dirname "$self")
 
   MIRROR_CONFIG="${selfdir}/../etc/mirror.conf"
