@@ -1,2 +1,4 @@
+# TODO change these to systemd timer/service units
+# BUG @reboot not being recognized in centos7, so isos aren't being mounted at boot
 @reboot   root /srv/mirror/bin/iso-mount     >> /var/log/mirror.log 2>&1
 2 2 * * * root /srv/mirror/bin/update-latest >> /var/log/mirror.log 2>&1

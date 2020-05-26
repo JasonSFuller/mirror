@@ -29,7 +29,7 @@ function install_packages
   echo 'installing required packages'
 
   yum -y install \
-    @base @core vim policycoreutils-python \
+    @base @core vim policycoreutils-python rsync \
     httpd mod_ssl openssl \
     createrepo pykickstart \
     tftp-server xinetd syslinux-tftpboot memtest86+ \
@@ -163,7 +163,7 @@ function config_selinux_paths
   semanage fcontext -a -t httpd_sys_content_t     "${MIRROR_BASE_PATH}/www(/.*)?"
   semanage fcontext -a -t httpd_sys_content_t     "${MIRROR_BASE_PATH}/theme(/.*)?"
   semanage fcontext -a -t tftpdir_t               "${MIRROR_BASE_PATH}/tftp(/.*)?"
-  # TODO maybe? allow the auto gen; not happy about it today
+  # TODO maybe? allow the auto gen; not happy with autogen RN
   # semanage fcontext -a -t httpd_sys_script_exec_t "${MIRROR_BASE_PATH}/www/ks/auto"
 
   restorecon -R -v "${MIRROR_BASE_PATH}"
