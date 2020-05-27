@@ -14,7 +14,7 @@ and walk away while it builds a system, no questions asked.
 BTW, the password in these is hashed, but I used "password" (without
 quotes) for all of them.  You can [effectively] replace that line with
 `rootpw password`, and it'd be exactly the same.  But since I'm capturing
-these as is, I left the sha512 hashes in the kickstart.
+these _as is_, I left the sha512 hashes in the kickstart.
 
   * [](anaconda-ks.cfg.CentOS-6.10-x86_64-bin-DVD1.txt)
   * [](anaconda-ks.cfg.CentOS-7-x86_64-Everything-1908.txt)

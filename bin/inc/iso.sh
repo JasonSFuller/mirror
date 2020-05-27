@@ -163,6 +163,7 @@ function umount_iso
 
 
 
+# writes supplimental files related to the iso (tftp pxe, kickstart, etc)
 function write_iso_file
 {
   local file="$1"

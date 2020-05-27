@@ -57,16 +57,6 @@ Then you can do things like this, even for files **not** in a git repo
 		  allow-query     { localhost; trusted; };
 		  allow-transfer  { none; };
 
-		  /*
-		   - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
-		   - If you are building a RECURSIVE (caching) DNS server, you need to enable
-		     recursion.
-		   - If your recursive DNS server has a public IP address, you MUST enable access
-		     control to limit queries to your legitimate users. Failing to do so will
-		     cause your server to become part of large scale DNS amplification
-		     attacks. Implementing BCP38 within your network would greatly
-		     reduce such attack surface
-		  */
 		  recursion yes;
 		  allow-recursion { localhost; trusted; };
 
