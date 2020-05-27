@@ -1,0 +1,31 @@
+#!/bin/bash
+
+self=$(realpath -e "${BASH_SOURCE[0]}")
+selfdir=$(dirname "$self")
+source "${selfdir}/inc/require_root.sh"
+source "${selfdir}/inc/read_config.sh"
+source "${selfdir}/inc/snapshot.sh"
+
+################################################################################
+
+action="$1"
+shift
+
+case "$action" in
+  ls) snap_ls ;;      # list snapshots
+  mk) snap_mk ;;      # create a snapshot
+  rm) snap_rm "$@" ;; # remove snapshots
+  ln) snap_ln "$@" ;; # create a symlink
+  *)
+    if [[ -z "$*" ]]; then
+      echo "USAGE:"
+      echo "  snap ls                           # list snapshots and symlinks"
+      echo "  snap mk                           # create a snapshot"
+      echo "  snap rm <snapshot|symlink> [...]  # remove a snapshot or symlink"
+      echo "  snap ln <snapshot> <name>         # create a symlink"
+    else
+      echo "ERROR: invalid command" >&2
+      exit 1
+    fi
+  ;;
+esac
